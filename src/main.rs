@@ -18,7 +18,12 @@ use tensorflow::Status;
 use tensorflow::StepWithGraph;
 use tensorflow::Tensor;
 
-static MASK_RCNN_PB: &'static str = "/Users/mattmoore/Projects/rust-tensorflow/data/mask_rcnn.pb";
+const MASK_RCNN_PB: &str = "/Users/mattmoore/Projects/rust-tensorflow/data/mask_rcnn.pb";
+// const TF_MASKRCNN_TOILET_CLASSNUM: i32 = 1;
+const TF_MASKRCNN_IMG_WIDTHHEIGHT: i32 = 256;
+const TF_MASKRCNN_IMAGE_METADATA_LENGTH: u64 = 10;
+const TF_MASKRCNN_IMAGE_METADATA: [i32; 10] = [ 0 ,TF_MASKRCNN_IMG_WIDTHHEIGHT ,TF_MASKRCNN_IMG_WIDTHHEIGHT , 3 , 0 , 0 ,TF_MASKRCNN_IMG_WIDTHHEIGHT ,TF_MASKRCNN_IMG_WIDTHHEIGHT , 0 , 0 ];
+
 
 fn main() {
     // Putting the main code in another function serves two purposes:
@@ -47,10 +52,8 @@ fn run() -> Result<(), Box<Error>> {
     }
 
     // Create input variables for our addition
-    let mut x = Tensor::new(&[1]);
-    x[0] = 2i32;
-    let mut y = Tensor::new(&[1]);
-    y[0] = 40i32;
+    let input_img = <Tensor<f32>>::new(&[1, TF_MASKRCNN_IMG_WIDTHHEIGHT as u64, TF_MASKRCNN_IMG_WIDTHHEIGHT as u64, 3]);
+    let input_meta = Tensor::new(&[1, TF_MASKRCNN_IMAGE_METADATA_LENGTH]).with_values(&TF_MASKRCNN_IMAGE_METADATA).unwrap();
 
     // Load the computation graph defined by regression.py.
     let mut graph = Graph::new();
@@ -61,8 +64,8 @@ fn run() -> Result<(), Box<Error>> {
 
     // Run the Step
     let mut step = StepWithGraph::new();
-    step.add_input(&graph.operation_by_name_required("input_image")?, 0, &x);
-    step.add_input(&graph.operation_by_name_required("input_image_meta")?, 0, &y);
+    step.add_input(&graph.operation_by_name_required("input_image")?, 0, &input_img);
+    step.add_input(&graph.operation_by_name_required("input_image_meta")?, 0, &input_meta);
     let detections = step.request_output(&graph.operation_by_name_required("output_detections")?, 0);
     let masks = step.request_output(&graph.operation_by_name_required("output_mrcnn_mask")?, 0);
     session.run(&mut step)?;
