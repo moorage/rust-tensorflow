@@ -60,11 +60,16 @@ fn run() -> Result<(), Box<Error>> {
         ));
     }
 
-    // Create input variables for our addition
-    let opened_img = image::open(&IMG_256SQ)?;
+    let img_raw: Vec<u8> = {
+        // Create input variables for our addition
+        let opened = image::open(&IMG_256SQ)?;
+        let tmp = opened.as_rgb8().unwrap();
+        let s = tmp.into_vec();
+        s
+    };
+    let img_float: Vec<f32> = img_raw.iter().map(|&p| p as f32).collect();
     // let img =
     // let (img_w, img_h) = img.dimensions();
-    let img_float: Vec<f32> = opened_img.as_rgb8().unwrap().into_raw().iter().map(|&p| p as f32).collect();
     let input_img = <Tensor<f32>>::new(&[
         1,
         TF_MASKRCNN_IMG_WIDTHHEIGHT as u64,
