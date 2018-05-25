@@ -137,10 +137,9 @@ fn run() -> Result<(), Box<Error>> {
     let detections_dim1 = detections_tensor.dims()[1];
 
     for i in 0..masks_tensor.dims()[1] {
-    println!("  checking for match at {} ", i);
         let score_at_i = detections_tensor[row_major_3d_idx!(0, i, 5; detections_dim0, detections_dim1)];
         let detected_class = detections_tensor[row_major_3d_idx!(0, i, 4; detections_dim0, detections_dim1)];
-        println!("      got detected class {} with score {} ", detected_class, score_at_i);
+        println!("      {}: got detected class {} with score {} ", i, detected_class, score_at_i);
         if detected_class == TF_MASKRCNN_TOILET_CLASSNUM && score_at_i > TF_MASKRCNN_PREDICTION_THRESSHOLD && score_at_i > highest_score_value {
             // check that it's a greater than zero area
             let y1 = detections_tensor[row_major_3d_idx!(0, i, 0; detections_dim0, detections_dim1)];
